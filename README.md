@@ -128,8 +128,58 @@ python scripts/count_behavior_tokens.py --dataset CDs
 See `baseline/README.md`. All baselines use the same frozen protocol and write the same
 `cost_summary.json` format.
 
-## Tests
+## Reproducing CoMemTree Results
+
+### 1. Dataset and Precomputed Behaviors
+
+We provide the processed **Amazon CDs and Vinyl (CDs)** dataset, including precomputed behavioral descriptions used in our experiments.
+
+The dataset and precomputed behaviors are available at:
+
+[Download CDs Dataset and Precomputed Behaviors](https://drive.google.com/drive/folders/1ZgHEzxS2aGC47hfCELP6fljABwtk9Eyd?usp=sharing)
+
+Download the files and place them in the corresponding directories under `precomputed/CDs/`.
+
+### 2. Environment Setup
+
+From the project root directory, configure the Python module path:
 
 ```bash
-python -m unittest discover -s tests
+export PYTHONPATH="$(pwd)/src"
 ```
+
+### 3. Collaborative Memory Construction
+
+Build the collaborative behavioral context tree using the precomputed training behaviors:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python -m bt4rec.cli.build_tree \
+    --input precomputed/CDs/train_shared.jsonl \
+    --output-dir trees/CDs_global_1000_20 \
+    --seed 42
+```
+
+### 4. LLM Re-ranking
+
+Run the LLM re-ranking evaluation using the constructed tree and precomputed evaluation behaviors:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python -m bt4rec.cli.run \
+    --dataset CDs \
+    --tree-dir trees/CDs_global_1000_20 \
+    --precomputed-behaviors precomputed/CDs/test_shared.jsonl \
+    --modes native,latest_what_only,latest_how_only,tree,tree_v2 \
+    --tree-max-query-order 2 \
+    --llm-batch-size 8 \
+    --output-root results/comemtree
+```
+
+The evaluation results are saved under `results/comemtree/`.
+
+### 5. Configuration Notes
+
+- `--seed 42`: Random seed used for reproducibility.
+- `--tree-max-query-order`: Maximum behavioral context order used during tree retrieval. Set to `0` for latest-state-only retrieval or `2` for contexts up to order 2.
+- `--llm-batch-size 8`: Number of evaluation instances processed per LLM batch.
+- `--modes`: Specifies the ranking configurations to evaluate.
+- `--output-root`: Directory for saving evaluation results.
