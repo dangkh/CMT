@@ -1,0 +1,14 @@
+__pycache__/
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
+.DS_Store
+unsloth_compiled_cache/
+logs/
+# Only the top-level data / artefact folders (a bare "data/" also ignored the
+# source packages src/bt4rec/data/ and baseline/memrec/data/).
+/data/
+/precomputed/
+/precomputed2/
+/trees/
+/results/
