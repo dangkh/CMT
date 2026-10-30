@@ -1,5 +1,5 @@
 # CoMemTree
-
+![CoMemTree Overview](pipeline.png)
 Collaborative behaviour memory tree for LLM-based sequential recommendation.
 
 An LLM ranker scores the next item of a user from two pieces of behaviour evidence:
